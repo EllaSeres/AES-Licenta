@@ -4,10 +4,10 @@ use ieee.numeric_std.all;
 library work;
 use work.Matrixform.all;
 
-entity ShiftRow_tb is
+entity Xorop_tb is
 end entity;
   
-architecture sim of ShiftRow_tb is
+architecture sim of Xorop_tb is
   
     -- We are using a low clock frequency to speed up the simulation
     constant ClockFrequencyHz : integer := 100; -- 100 Hz
@@ -15,7 +15,8 @@ architecture sim of ShiftRow_tb is
   
     signal clk          : std_logic := '1';
     signal reset        : std_logic := '0';
-    signal inputmatrix  : matrix ;
+    signal matrixword   : matrix ;
+	signal matrixkey    : matrix;
     signal outputmatrix : matrix ;
   
 begin
@@ -25,7 +26,8 @@ begin
     port map (
         clk          => clk,
         reset        => reset,
-        inputmatrix  => inputmatrix,
+        matrixword   => matrixword,
+		matrixkey    => matrixkey,
 		outputmatrix => outputmatrix
 		);
   
@@ -34,11 +36,24 @@ begin
 	
 	-- Matrix initalization
 	process is
+        variable value : natural := 16;
+    begin
+        for i in 0 to 3 loop
+            for j in 0 to 3 loop
+                matrixword(i, j) <= std_logic_vector(to_unsigned(value, matrixword(i, j)'length));
+                value := value + 1;
+            end loop;
+        end loop;
+        wait;
+    end process;
+	
+	-- Matrix initalization
+	process is
         variable value : natural := 0;
     begin
         for i in 0 to 3 loop
             for j in 0 to 3 loop
-                inputmatrix(i, j) <= std_logic_vector(to_unsigned(value, inputmatrix(i, j)'length));
+                matrixkey(i, j) <= std_logic_vector(to_unsigned(value, matrixkey(i, j)'length));
                 value := value + 1;
             end loop;
         end loop;
