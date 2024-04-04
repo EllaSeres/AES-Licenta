@@ -16,9 +16,9 @@ end entity;
 architecture rtl of MixColumn is
        
 	    signal resultmatrix : matrix;
-		signal const1  : std_logic (8 downto 0)= "000000001";
-		signal const2  : std_logic (8 downto 0)= "000000010";	
-		signal const3  : std_logic (8 downto 0)= "000000011";
+		signal const1  : std_logic_vector (8 downto 0):= "000000001";
+		signal const2  : std_logic_vector (8 downto 0):= "000000010";	
+		signal const3  : std_logic_vector (8 downto 0):= "000000011";
 		
 		
 		procedure Mix(
@@ -30,30 +30,40 @@ architecture rtl of MixColumn is
 								signal constant2                   :  in  std_logic_vector(8 downto 0);
 								signal constant3                   :  in  std_logic_vector(8 downto 0);
 								signal constant4                   :  in  std_logic_vector(8 downto 0);
-								signal outputvalue                 :  out  std_logic_vector(8 downto 0);
+								signal outputvalue                 :  out  std_logic_vector(7 downto 0)
 							    ) is
-								signal element91                   :    std_logic_vector(8 downto 0);
-								signal element92                   :    std_logic_vector(8 downto 0);
-								signal element93                   :    std_logic_vector(8 downto 0);
-								signal element94                   :    std_logic_vector(8 downto 0);
-								signal final                       :    std_logic_vector(8 downto 0);
-								constant ireducablepolinomial      :    std_logic_vector(8 downto 0) = "111010011"
+								variable element91                   :    std_logic_vector(8 downto 0);
+								variable element92                   :    std_logic_vector(8 downto 0);
+								variable element93                   :    std_logic_vector(8 downto 0);
+								variable element94                   :    std_logic_vector(8 downto 0);
+								variable final                       :    std_logic_vector(8 downto 0);
+							    variable element91mul                :    std_logic_vector(17 downto 0);
+								variable element92mul                :    std_logic_vector(17 downto 0);
+								variable element93mul                :    std_logic_vector(17 downto 0);
+								variable element94mul                :    std_logic_vector(17 downto 0);
+								
+
+								variable ireducablepolinomial      :    std_logic_vector(8 downto 0) := "111010011";
 								
 								
 								
 		 begin
 		 
-		 element91 <= '0' & element1;
-		 element92 <= '0' & element2;
-		 element93 <= '0' & element3;
-		 element94 <= '0' & element4;
-		 element91 <= std_logic_vector(unsigned(constant1) * unsigned(element91))(8 downto 0);
-		 element92 <= std_logic_vector(unsigned(constant2) * unsigned(element92))(8 downto 0);
-		 element93 <= std_logic_vector(unsigned(constant3) * unsigned(element93))(8 downto 0);
-		 element94 <= std_logic_vector(unsigned(constant4) * unsigned(element94))(8 downto 0);
-		 final     <= element91 xor element92 xor element93 xor element94;
-		 if final'high = '1' then
-		    final <= final xor ireducablepolinomial;
+		 element91 := '0' & element1;
+		 element92 := '0' & element2;
+		 element93 := '0' & element3;
+		 element94 := '0' & element4;
+		 element91mul := std_logic_vector(unsigned(constant1) * unsigned(element91));
+		 element92mul := std_logic_vector(unsigned(constant2) * unsigned(element92));
+		 element93mul := std_logic_vector(unsigned(constant3) * unsigned(element93));
+		 element94mul := std_logic_vector(unsigned(constant4) * unsigned(element94));
+		 element91    := element91mul(8 downto 0);
+		 element92    := element92mul(8 downto 0);
+		 element93    := element93mul(8 downto 0);
+		 element94    := element94mul(8 downto 0);
+		 final     := element91 xor element92 xor element93 xor element94;
+		 if final(final'high )= '1' then
+		    final := final xor ireducablepolinomial;
 		 end if;
 		 outputvalue <= final(7 downto 0);    
 		end procedure;

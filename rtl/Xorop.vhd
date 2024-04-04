@@ -22,13 +22,13 @@ begin
 
     process(clk) 
     begin
-        if rising_edge(Clk) then
+        if rising_edge(clk) then
             if reset = '0' then
                 
             else
                 for i in 0 to 3 loop
 					for j in 0 to 3 loop
-					   resultmatrix(i,j) = matrixword(i,j) xor matrixkey(i,j);
+					   resultmatrix(i,j) <= matrixword(i,j) xor matrixkey(i,j);
 					end loop;
                 end loop;
             end if;
