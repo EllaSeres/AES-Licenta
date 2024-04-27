@@ -4,6 +4,10 @@ use  ieee.std_logic_1164.all;
 package matrixform is
   type Matrix is array (0 to 3,0 to 3)
   of std_logic_vector  (7 downto 0 );
+  
+  type MatrixRoworColumn is array (0 to 3)
+  of std_logic_vector  (7 downto 0 );
+  
 end package;
 
 --def memorie or bram 

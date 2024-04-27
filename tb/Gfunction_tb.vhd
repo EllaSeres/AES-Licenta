@@ -4,48 +4,39 @@ use ieee.numeric_std.all;
 library work;
 use work.Matrixform.all;
 
-entity ShiftRow_tb is
+entity Gfunction_tb is
 end entity;
   
-architecture sim of ShiftRow_tb is
+architecture sim of Gfunction_tb is
   
     -- We are using a low clock frequency to speed up the simulation
     constant ClockFrequencyHz : integer := 100; -- 100 Hz
     constant ClockPeriod : time := 1000 ms / ClockFrequencyHz;
-	
+	constant roundnr     : std_logic_vector(3 downto 0) := x"8";
   
-    signal clk          : std_logic := '1';
-    signal reset        : std_logic := '0';
-    signal inputmatrix  : matrix ;
-    signal outputmatrix : matrix ;
+    signal clk                 : std_logic := '1';
+    signal reset               : std_logic := '0';
+    signal inputarray          : MatrixRoworColumn := (x"7F",x"8D",x"29",x"2F");
+    signal outputarray         : MatrixRoworColumn;
   
 begin
     
     -- The Device Under Test (DUT)
-    i_ShiftRow : entity work.ShiftRow(rtl)
+    i_Gfunction : entity work.Gfunction(rtl)
+	generic map(
+	   roundnr => roundnr
+	)
     port map (
         clk          => clk,
         reset        => reset,
-        inputmatrix  => inputmatrix,
-		outputmatrix => outputmatrix
+        inputarray  => inputarray,
+		outputarray => outputarray
 		);
   
     -- Process for generating clock
     clk <= not clk after ClockPeriod / 2;
 	
-	-- Matrix initalization
-	process is
-        variable value : natural := 0;
-    begin
-        for i in 0 to 3 loop
-            for j in 0 to 3 loop
-                inputmatrix(i, j) <= std_logic_vector(to_unsigned(value, inputmatrix(i, j)'length));
-                value := value + 1;
-            end loop;
-        end loop;
-        wait;
-    end process;
-  
+	
     -- Testbench sequence
     process is
     begin
