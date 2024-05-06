@@ -20,7 +20,7 @@ architecture rtl of ShiftRow is
 		
 		
    procedure ShiftInOneRow(
-								constant nr     : in std_logic_vector(3 downto 0);
+								constant nr       : in std_logic_vector(3 downto 0);
 								variable onerow   : in ist_array8;
 								variable output   : inout ist_array8
 								) is
@@ -50,30 +50,32 @@ begin
             "0010",
             "0011"
         );
-		
+		variable i  : std_logic_vector(2 downto 0) ;
     begin 
         if rising_edge(Clk) then
             if reset = '0' then
               resultmatrix <= ((others => (others => '0')),(others => (others => '0')),(others => (others => '0')),(others => (others => '0')));
-
+              i := (others => '0'); -- Reset i
             else
-			for i in 0 to 3 loop
+			if to_integer(unsigned(i)) = 4 then
+			    i := (others => '0'); -- Reset i
+			else
 			    
 				for j in 0 to 3 loop
-					inputrow(j):=inputmatrix(i,j);
+					inputrow(j):=inputmatrix(to_integer(unsigned(i)),j);
 				end loop;
 				
-				if i = 0 then
+				if to_integer(unsigned(i)) = 0 then
 				     outputrow := inputrow;
 				else
-					ShiftInOneRow(increment(i),inputrow,outputrow);
+					ShiftInOneRow(increment(to_integer(unsigned(i))),inputrow,outputrow);
 				end if;
 				
 				for j in 0 to 3 loop
-					resultmatrix(i,j) <= outputrow(j);
+					resultmatrix(to_integer(unsigned(i)),j) <= outputrow(j);
 				end loop;
-                				
-			end loop; 
+                 i := std_logic_vector(unsigned(i) + 1); -- Move to next row				
+			end if;
                			
         end if;
       end if;

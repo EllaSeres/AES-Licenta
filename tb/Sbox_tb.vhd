@@ -15,7 +15,12 @@ architecture sim of Sbox_tb is
   
     signal clk          : std_logic := '1';
     signal reset        : std_logic := '0';
-    signal inputmatrix  : matrix ;
+    signal inputmatrix  : matrix:= (
+    (X"0f", X"15", X"71", X"c9"),
+    (X"47", X"d9", X"e8", X"59"),
+    (X"0c", X"b7", X"ad", X"d6"),
+    (X"af", X"7f", X"67", X"98")
+    ); 
     signal outputmatrix : matrix ;
   
 begin

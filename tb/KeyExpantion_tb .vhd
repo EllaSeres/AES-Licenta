@@ -4,10 +4,10 @@ use ieee.numeric_std.all;
 library work;
 use work.Matrixform.all;
 
-entity Gfunction_tb is
+entity KeyExpantion_tb is
 end entity;
   
-architecture sim of Gfunction_tb is
+architecture sim of KeyExpantion_tb is
   
     -- We are using a low clock frequency to speed up the simulation
     constant ClockFrequencyHz : integer := 100; -- 100 Hz
@@ -17,23 +17,25 @@ architecture sim of Gfunction_tb is
   
     signal clk                 : std_logic := '1';
     signal reset               : std_logic := '0';
-	signal enable              : std_logic := '0';
-    signal done                : std_logic := '0';	
-    signal inputarray          : MatrixRoworColumn := (x"7F",x"8D",x"29",x"2F");
-    signal outputarray         : MatrixRoworColumn;
+    signal doneall             : std_logic := '0';	
+    signal inputmatrix         : matrix := (
+    (X"0f", X"15", X"71", X"c9"),
+    (X"47", X"d9", X"e8", X"59"),
+    (X"0c", X"b7", X"ad", X"d6"),
+    (X"af", X"7f", X"67", X"98")
+    );  
+    signal outputmatrix        : matrix ;
   
 begin
     
     -- The Device Under Test (DUT)
-    i_Gfunction : entity work.Gfunction(rtl)
+    i_KeyExpantion : entity work.KeyExpantion(rtl)
     port map (
         clk          => clk,
         reset        => reset,
-		enable       => enable,
-		done         => done,
-		roundnr      => roundnr,
-        inputarray   => inputarray,
-		outputarray  => outputarray
+		doneall      => doneall,
+		inputmatrix  => inputmatrix,
+		outputmatrix => outputmatrix
 		);
   
     -- Process for generating clock
