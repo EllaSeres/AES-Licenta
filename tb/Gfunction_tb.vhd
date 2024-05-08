@@ -13,13 +13,13 @@ architecture sim of Gfunction_tb is
     constant ClockFrequencyHz : integer := 100; -- 100 Hz
     --constant ClockPeriod : time := 1000 ms / ClockFrequencyHz;
 	constant ClockPeriod : time := 10 ns;
-	constant roundnr     : std_logic_vector(3 downto 0) := x"8";
+	constant roundnr     : std_logic_vector(3 downto 0) := x"1";
   
     signal clk                 : std_logic := '1';
     signal reset               : std_logic := '0';
-	signal enable              : std_logic := '0';
+	signal enable              : std_logic := '1';
     signal done                : std_logic := '0';	
-    signal inputarray          : MatrixRoworColumn := (x"7F",x"8D",x"29",x"2F");
+    signal inputarray          : MatrixRoworColumn :=(x"38",x"81",x"15",x"a7");
     signal outputarray         : MatrixRoworColumn;
   
 begin
@@ -48,6 +48,12 @@ begin
   
         -- Take the DUT out of reset
         reset <= '1';
+		wait until rising_edge(clk);
+        wait until rising_edge(clk);
+		enable <= '0';
+		if done = '1' then
+		   enable <= '1';
+		end if;
         wait;
     end process;
   
