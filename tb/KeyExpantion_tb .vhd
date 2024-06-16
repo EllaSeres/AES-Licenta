@@ -13,17 +13,18 @@ architecture sim of KeyExpantion_tb is
     constant ClockFrequencyHz : integer := 100; -- 100 Hz
     --constant ClockPeriod : time := 1000 ms / ClockFrequencyHz;
 	constant ClockPeriod : time := 10 ns;
-	constant roundnr     : std_logic_vector(3 downto 0) := x"8";
+	constant counter    : std_logic_vector(3 downto 0) := x"0";
   
     signal clk                 : std_logic := '1';
     signal reset               : std_logic := '0';
-    signal doneall             : std_logic := '0';	
-    signal inputmatrix         : matrix := (
-    (X"0f", X"15", X"71", X"c9"),
-    (X"47", X"d9", X"e8", X"59"),
-    (X"0c", X"b7", X"ad", X"d6"),
-    (X"af", X"7f", X"67", X"98")
-    );  
+    signal doneks              : std_logic := '0';
+    signal enableks            : std_logic := '0';	
+    signal inputmatrix         : matrix    :=  (
+        (X"2b", X"28", X"ab", X"09"),
+        (X"7e", X"ae", X"f7", X"cf"),
+        (X"15", X"d2", X"15", X"4f"),
+        (X"16", X"a6", X"88", X"3c")
+        );     
     signal outputmatrix        : matrix ;
   
 begin
@@ -33,7 +34,9 @@ begin
     port map (
         clk          => clk,
         reset        => reset,
-		doneall      => doneall,
+		enableks    => enableks,
+		counter     => counter,
+		doneks      => doneks,
 		inputmatrix  => inputmatrix,
 		outputmatrix => outputmatrix
 		);

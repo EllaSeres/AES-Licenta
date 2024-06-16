@@ -11,10 +11,12 @@ architecture sim of Xorop_tb is
   
     -- We are using a low clock frequency to speed up the simulation
     constant ClockFrequencyHz : integer := 100; -- 100 Hz
-    constant ClockPeriod : time := 1000 ms / ClockFrequencyHz;
+    constant ClockPeriod : time := 10 ns;
   
     signal clk          : std_logic := '1';
     signal reset        : std_logic := '0';
+	signal enable       : std_logic := '0';
+	signal done         : std_logic;
     signal matrixword   : matrix ;
 	signal matrixkey    : matrix;
     signal outputmatrix : matrix ;
@@ -26,6 +28,8 @@ begin
     port map (
         clk          => clk,
         reset        => reset,
+		enable       => enable,
+		done         => done,
         matrixword   => matrixword,
 		matrixkey    => matrixkey,
 		outputmatrix => outputmatrix

@@ -8,7 +8,9 @@ entity KeyExpantion is
 	Port(
     clk                : in std_logic;
     reset              : in std_logic;
-    doneall            : out std_logic;	
+	enableks           : in std_logic;
+	counter            : in std_logic_vector(3 downto 0);
+    doneks            : out std_logic;	
     inputmatrix        : in  matrix ;
     outputmatrix       : out matrix );
 end entity;
@@ -18,7 +20,6 @@ architecture rtl of KeyExpantion is
        
 	    signal resultmatrix : matrix;
 		signal idlematrix   : matrix;
-		signal counter :  std_logic_vector(3 downto 0) := x"0"; 
 		signal enable  :  std_logic ;
 		signal done    :  std_logic ;
 		signal w0      :   MatrixRoworColumn;
@@ -26,7 +27,7 @@ architecture rtl of KeyExpantion is
 		signal w2      :   MatrixRoworColumn;
 		signal w3      :   MatrixRoworColumn;
 		signal w4      :   MatrixRoworColumn;
-		type t_State is ( Check ,Matrix2Word,Gfun,Xor0,Xor1,Xor2,Xor3,Word2Matrix,Set);
+		type t_State is ( Idle,Check ,Matrix2Word,Gfun,Xor0,Xor1,Xor2,Xor3,Word2Matrix,DoneActive,Set);
         signal State : t_State;
 
 begin		
@@ -52,7 +53,7 @@ begin
 	   variable done5 :std_logic:= '0';
 	   variable done6 :std_logic:= '0';
 	   variable done7 :std_logic:= '0';
-	    variable done8 :std_logic:= '0';
+	   variable done8 :std_logic:= '0';
 	   variable i0  : std_logic_vector(2 downto 0);
 	   variable i1  : std_logic_vector(2 downto 0);
 	  
@@ -70,13 +71,21 @@ begin
 			   done8  := '0';
 			   i0 := (others => '0');
 			   i1 := (others => '0');
-               enable <= '1';
-			   idlematrix <= inputmatrix;
-			   State  <= Check;
+			   doneks <= '0';
+			   --idlematrix <= inputmatrix;
+			   State  <= Idle;
             else
-				if to_integer(unsigned(counter)) /= 10 then
+			        doneks <= '0';
+					enable <= '1';
 					case State is
-						when Check =>
+					    when Idle =>
+						if enableks = '0' then
+							 idlematrix <= inputmatrix;
+							 State <= Check;	
+						end if; 
+						
+						when Check => 
+						   
 							if done1 = '0' then
 								if to_integer(unsigned(i0)) /= 4 then
 									State   <= Matrix2Word;
@@ -84,7 +93,8 @@ begin
 							elsif done1 = '1' then
 							     
 								 if done7 = '0' then 
-									State <= Gfun;
+									State  <= Gfun;
+									enable <= '0';
 								 elsif done7 = '1' then
 									
 								 --elsif enable = '1' then
@@ -100,7 +110,9 @@ begin
                                            if to_integer(unsigned(i1)) /= 4 then
 												State   <= Word2Matrix;
 											end if; 									
-				                    else
+				                    elsif done8 = '0' then
+										State <= DoneActive;
+									else
 										State <= Set;
 									end if;
 								 end if;							 
@@ -109,25 +121,25 @@ begin
 						when Matrix2Word =>
 							if to_integer(unsigned(i0)) = 0 then
 								for j in 0 to 3 loop
-									w0(j)<=idlematrix(to_integer(unsigned(i0)),j);
+									w0(j)<=idlematrix(j,to_integer(unsigned(i0)));
 								end loop;
 								i0 := std_logic_vector(unsigned(i0) + 1);
 								State <= Check;
 							elsif to_integer(unsigned(i0)) = 1 then
 								for j in 0 to 3 loop
-									w1(j)<=idlematrix(to_integer(unsigned(i0)),j);
+									w1(j)<=idlematrix(j,to_integer(unsigned(i0)));
 								end loop;
 								i0 := std_logic_vector(unsigned(i0) + 1);
 								State <= Check;
 							elsif to_integer(unsigned(i0)) = 2 then
 								 for j in 0 to 3 loop
-									w2(j)<=idlematrix(to_integer(unsigned(i0)),j);
+									w2(j)<=idlematrix(j,to_integer(unsigned(i0)));
 								end loop;
 								i0 := std_logic_vector(unsigned(i0) + 1);
 								State <= Check;
 							elsif to_integer(unsigned(i0)) = 3 then
 								for j in 0 to 3 loop
-									w3(j)<=idlematrix(to_integer(unsigned(i0)),j);
+									w3(j)<=idlematrix(j,to_integer(unsigned(i0)));
 								end loop;
 								i0 := std_logic_vector(unsigned(i0) + 1);
 								done1 := '1';
@@ -136,64 +148,70 @@ begin
 						
 						when Gfun =>
 						
-							enable <= '0';
+						--	enable <= '0';
 							if done = '1' then 
 							    done7 := '1';
-								enable <= '1';
+						--		enable <= '1';
 							    State <= Check;
 							end if;	
 						
 						when Xor0 =>
 						    for j in 0 to 3 loop
-									w0(j)<= w0(j) xor w4(j);
+								w0(j)<= w0(j) xor w4(j);
 							end loop;
 							done2 := '1';
 							State <= Check;
 						when Xor1 =>
 						    for j in 0 to 3 loop
-									w1(j)<= w1(j) xor w0(j);
+								w1(j)<= w1(j) xor w0(j);
 							end loop;
 							done3 := '1';
 							State <= Check;
 						when Xor2 =>
 						    for j in 0 to 3 loop
-									w2(j)<= w2(j) xor w1(j);
+								w2(j)<= w2(j) xor w1(j);
 							end loop;
 							done4 := '1';
 							State <= Check;
 						when Xor3 => 
 							for j in 0 to 3 loop
-									w3(j)<= w3(j) xor w2(j);
+								w3(j)<= w3(j) xor w2(j);
 							end loop;
 							done5 := '1';
 							State <= Check;
 						when Word2Matrix =>
 							if to_integer(unsigned(i1)) = 0 then
 								for j in 0 to 3 loop
-									resultmatrix(to_integer(unsigned(i1)),j) <= w0(j);
+									resultmatrix(j,to_integer(unsigned(i1))) <= w0(j);
 								end loop;
 								i1 := std_logic_vector(unsigned(i1) + 1);
 								State <= Check;
 							elsif to_integer(unsigned(i1)) = 1 then
 								for j in 0 to 3 loop
-									resultmatrix(to_integer(unsigned(i1)),j) <= w1(j);
+									resultmatrix(j,to_integer(unsigned(i1))) <= w1(j);
 								end loop;
 								i1 := std_logic_vector(unsigned(i1) + 1);
 								State <= Check;
 							elsif to_integer(unsigned(i1)) = 2 then
 								for j in 0 to 3 loop
-									resultmatrix(to_integer(unsigned(i1)),j) <= w2(j);
+									resultmatrix(j,to_integer(unsigned(i1))) <= w2(j);
 								end loop;
 								i1 := std_logic_vector(unsigned(i1) + 1);
 								State <= Check;
 							elsif to_integer(unsigned(i1)) = 3 then
 								for j in 0 to 3 loop
-									resultmatrix(to_integer(unsigned(i1)),j) <= w3(j);
+									resultmatrix(j,to_integer(unsigned(i1))) <= w3(j);
 								end loop;
 								i1 := std_logic_vector(unsigned(i1) + 1);
 								done6 := '1';
+								 
 								State <= Check;
 							end if;
+						when DoneActive =>
+							outputmatrix <= resultmatrix;
+							done8 := '1';
+							doneks <= '1';
+							State <= Check;
 						when Set =>
 						   done1  := '0';
 						   done2  := '0';
@@ -202,20 +220,17 @@ begin
 			               done5  := '0';
 						   done6  := '0';
 						   done7  := '0';
+						   done8  := '0';
 			               i0 := (others => '0');
 						   i1 := (others => '0');
                            enable <= '1';
-						   outputmatrix <= resultmatrix;
 						   idlematrix   <= resultmatrix;
-						   
-						   counter <= std_logic_vector(unsigned(counter) + 1);
-			               State  <= Check;
+						   --doneks <= '1';
+			               State  <= Idle;
 						when others =>
-							State <= Check;  
+							State <= Idle;  
 					end case;
-				else
-				    doneall <= '1';
-				end if;   			
+						
             end if;
         end if;
        end process;

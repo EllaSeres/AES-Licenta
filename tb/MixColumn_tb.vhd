@@ -11,10 +11,12 @@ architecture sim of MixColumn_tb is
   
     -- We are using a low clock frequency to speed up the simulation
     constant ClockFrequencyHz : integer := 100; -- 100 Hz
-    constant ClockPeriod : time := 1000 ms / ClockFrequencyHz;
+    constant ClockPeriod : time := 10 ns;
   
     signal clk          : std_logic := '1';
     signal reset        : std_logic := '0';
+	signal enable       : std_logic := '0';
+	signal done         : std_logic ;
     signal inputmatrix  : matrix := (
     (X"85", X"6E", X"61", X"3C"),
     (X"19", X"13", X"E0", X"82"),
@@ -30,6 +32,8 @@ begin
     port map (
         clk          => clk,
         reset        => reset,
+		enable       => enable,
+		done         => done,
         inputmatrix  => inputmatrix,
 		outputmatrix => outputmatrix
 		);

@@ -20,7 +20,7 @@ end entity;
 architecture rtl of Gfunction is
        
    type ist_array is array (0 to 9) of std_logic_vector(7 downto 0);
-   type t_State is ( Check ,Shift ,Sub ,XorRC,DoneActive,SetBack );
+   type t_State is ( Idle,Check ,Shift ,Sub ,XorRC,DoneActive,SetBack );
    signal State : t_State;
    procedure ShiftInOneRow(	
                                 variable input   : in  MatrixRoworColumn ;
@@ -347,16 +347,20 @@ begin
 				done2 := '0';
 				done3 := '0';
 				outputarray <= (x"00",x"00",x"00",x"00");
-				State  <= Check;
+				State  <= Idle;
 				i     := "000";
 				
             else
-			  if enable = '0' then
+			   done <= '0';
 			   case State is
+				 when Idle =>
+						if enable = '0' then
+							inp   := inputarray;
+							State <= Check;	
+						end if; 
+						
 				 when Check =>
-				    done <= '0';
 					if done1 = '0' then
-					    inp   := inputarray;
 						State   <= Shift;
 					elsif done1='1' then
 						if to_integer(unsigned(i)) /= 4 then
@@ -385,23 +389,24 @@ begin
 				            inp := column;
 							RoundConstantXor(inp,column,roundnr);
 							done2 := '1';
-							outputarray <= column;
 							State <= Check;
 				when DoneActive =>
-                    	done <= '1';
+				        outputarray <= column;
 						done3 := '1';
+						 done <= '1';
                         State <= Check;						
 				when  SetBack => 
+				         
 			              done1:= '0';
 						  done2:='0';
 						  done3:='0';
 						  column := (x"00",x"00",x"00",x"00");					  
 						  i:="000";
-						  State <= Check;
+						  State <= Idle;
 			    when others =>
-				        State <= Check;  
+				        State <= Idle;  
 			   end case;
-			 end if;
+			 
             end if;
         end if;
     end process;

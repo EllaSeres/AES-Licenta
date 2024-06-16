@@ -8,16 +8,18 @@ entity Sbox is
 	Port(
     clk               : in std_logic;
     reset             : in std_logic; 
+	enable            : in std_logic;
+	done              : out std_logic;
     inputmatrix       : in  matrix ;
     outputmatrix      : out matrix );
 end entity;
 
   
 architecture rtl of Sbox is
-   signal counter :  std_logic_vector(5 downto 0) := "010000"; 
-   signal smatrix : matrix;
-   signal i  : std_logic_vector(2 downto 0) ;
-   signal j  : std_logic_vector(2 downto 0) ;
+   signal smatrix    : matrix;
+   signal idlematrix : matrix;
+    type t_State is ( Idle,Check ,Sub,Finish,SetBack);
+    signal State : t_State;		
    procedure Substitution(
 								variable input   : in std_logic_vector(7 downto 0) ;   
 								variable output  : out std_logic_vector(7 downto 0)   
@@ -290,40 +292,59 @@ begin
   
     process(clk)
         
-		variable input : std_logic_vector(7 downto 0) ;   
+		variable input  : std_logic_vector(7 downto 0) ;   
 		variable output : std_logic_vector (7 downto 0);
-		
+		variable done1  : std_logic;
+		variable i      : std_logic_vector(2 downto 0) ;
     begin
         if rising_edge(Clk) then
             if reset = '0' then
-                i<="000";
-				j<="000";
+                i:="000";
+				done1 := '0';
+				done <= '0';
+				State <= Idle;
             else
-			 if counter(counter'high) = '0' then
-			    if to_integer(unsigned(i)) = 4 then
-				  if to_integer(unsigned(j)) = 4 then -- Last element
-                    i <= (others => '0'); -- Reset i
-                    j <= (others => '0'); -- Reset j
-                else
-                    i <= (others => '0'); -- Reset i
-                    j <= std_logic_vector(unsigned(j) + 1); -- Move to next column
-                end if;
-            else
-                input := inputmatrix(to_integer(unsigned(i)), to_integer(unsigned(j)));
-                Substitution(input, output);
-                smatrix(to_integer(unsigned(i)), to_integer(unsigned(j))) <= output;
-                i <= std_logic_vector(unsigned(i) + 1); -- Move to next row
-				counter <=  std_logic_vector(unsigned(counter) - 1);
-				
-		    end if;
-	
-				
-			 else
-			   counter <="010000";
-			   outputmatrix <= smatrix;
-			   i<="000";
-			   j<="000";
-            end if;
+				   done  <= '0';
+				   case State is
+				   when Idle =>
+						if enable = '0' then
+							idlematrix <= inputmatrix;
+							State <= Check;	
+						end if; 
+					when Check =>
+								if to_integer(unsigned(i)) /= 4 then
+									State <= Sub;
+								else
+									if done1 = '0' then
+										State <= Finish;
+									else 
+										State <= SetBack;
+									end if;
+								end if;
+							
+					when Sub =>
+					
+					        for j in 0 to 3 loop
+							    input := idlematrix(to_integer(unsigned(i)), j);
+								Substitution(input, output);
+								smatrix(to_integer(unsigned(i)),j) <= output;
+						    end loop;
+							i := std_logic_vector(unsigned(i) + 1); 
+							State <= Check;
+					when Finish =>
+							done1 := '1';
+						    outputmatrix <= smatrix;
+							done  <= '1';
+					        State <= Check;
+					when SetBack =>
+							done1 := '0'; 
+							i:="000";
+							State <= Idle;
+							
+					when others =>
+							State <= Idle;  						
+					end case;
+	          
             end if;
         end if;
     end process;

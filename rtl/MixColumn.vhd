@@ -7,7 +7,9 @@ use work.Matrixform.all;
 entity MixColumn is
 	Port(
     clk                : in std_logic;
-    reset              : in std_logic;  
+    reset              : in std_logic; 
+    enable             : in std_logic;
+    done               : out std_logic;	
     inputmatrix        : in  matrix ;
     outputmatrix       : out matrix 	);
 end entity;
@@ -16,10 +18,13 @@ end entity;
 architecture rtl of MixColumn is
        
 	    signal resultmatrix : matrix;
+		signal idlematrix   : matrix;
 		signal const1  : std_logic_vector (7 downto 0):= "00000001";
 		signal const2  : std_logic_vector (7 downto 0):= "00000010";	
 		signal const3  : std_logic_vector (7 downto 0):= "00000011";
-		type ist_array is array (0 to 3) of std_logic_vector(7 downto 0);  
+		type ist_array is array (0 to 3) of std_logic_vector(7 downto 0); 
+        type t_State is ( Idle,Check ,MixState,Finish,SetBack);
+        signal State : t_State;		
 			
 		
 		
@@ -75,41 +80,82 @@ architecture rtl of MixColumn is
 begin
 
     process(clk) 
-	variable done                      :    std_logic := '0'	;
+		variable done1 : std_logic;
+		variable done2 : std_logic;
     begin  
         if rising_edge(Clk) then
             if reset = '0' then
-                
+                done <= '0';
+				done1 := '0';
+				done2 := '0';
+				State <= Idle;
             else
-			   if done = '0' then
-			       --First row of output matrix
-                	Mix(inputmatrix(0,0),inputmatrix(1,0),inputmatrix(2,0),inputmatrix(3,0), const2,const3,const1,const1,resultmatrix(0,0));
-					Mix(inputmatrix(0,1),inputmatrix(1,1),inputmatrix(2,1),inputmatrix(3,1), const2,const3,const1,const1,resultmatrix(0,1));
-					Mix(inputmatrix(0,2),inputmatrix(1,2),inputmatrix(2,2),inputmatrix(3,2), const2,const3,const1,const1,resultmatrix(0,2));
-					Mix(inputmatrix(0,3),inputmatrix(1,3),inputmatrix(2,3),inputmatrix(3,3), const2,const3,const1,const1,resultmatrix(0,3));
+			    done <= '0';
+				case State is
+				    when Idle =>
+						if enable = '0' then
+							idlematrix <= inputmatrix;
+							State <= Check;	
+						end if; 
+						
+					when Check =>
+						
+							if done1 = '0' then
+								State <= MixState;
+							elsif done2 = '0' then
+							    State <= Finish;
+							else
+							    State <= SetBack;
+							end if;
+						
+			   
+			        when MixState =>
+						--First row of output matrix
+						Mix(idlematrix(0,0),idlematrix(1,0),idlematrix(2,0),idlematrix(3,0), const2,const3,const1,const1,resultmatrix(0,0));
+						Mix(idlematrix(0,1),idlematrix(1,1),idlematrix(2,1),idlematrix(3,1), const2,const3,const1,const1,resultmatrix(0,1));
+						Mix(idlematrix(0,2),idlematrix(1,2),idlematrix(2,2),idlematrix(3,2), const2,const3,const1,const1,resultmatrix(0,2));
+						Mix(idlematrix(0,3),idlematrix(1,3),idlematrix(2,3),idlematrix(3,3), const2,const3,const1,const1,resultmatrix(0,3));
+						
+						--Second row of output matrix
+						Mix(idlematrix(0,0),idlematrix(1,0),idlematrix(2,0),idlematrix(3,0), const1,const2,const3,const1,resultmatrix(1,0));
+						Mix(idlematrix(0,1),idlematrix(1,1),idlematrix(2,1),idlematrix(3,1), const1,const2,const3,const1,resultmatrix(1,1));
+						Mix(idlematrix(0,2),idlematrix(1,2),idlematrix(2,2),idlematrix(3,2), const1,const2,const3,const1,resultmatrix(1,2));
+						Mix(idlematrix(0,3),idlematrix(1,3),idlematrix(2,3),idlematrix(3,3), const1,const2,const3,const1,resultmatrix(1,3));
+						
+						--Third row of output matrix
+						Mix(idlematrix(0,0),idlematrix(1,0),idlematrix(2,0),idlematrix(3,0), const1,const1,const2,const3,resultmatrix(2,0));
+						Mix(idlematrix(0,1),idlematrix(1,1),idlematrix(2,1),idlematrix(3,1), const1,const1,const2,const3,resultmatrix(2,1));
+						Mix(idlematrix(0,2),idlematrix(1,2),idlematrix(2,2),idlematrix(3,2), const1,const1,const2,const3,resultmatrix(2,2));
+						Mix(idlematrix(0,3),idlematrix(1,3),idlematrix(2,3),idlematrix(3,3), const1,const1,const2,const3,resultmatrix(2,3));
+						
+						--Forth row of output matrix
+						Mix(idlematrix(0,0),idlematrix(1,0),idlematrix(2,0),idlematrix(3,0), const3,const1,const1,const2,resultmatrix(3,0));
+						Mix(idlematrix(0,1),idlematrix(1,1),idlematrix(2,1),idlematrix(3,1), const3,const1,const1,const2,resultmatrix(3,1));
+						Mix(idlematrix(0,2),idlematrix(1,2),idlematrix(2,2),idlematrix(3,2), const3,const1,const1,const2,resultmatrix(3,2));
+						Mix(idlematrix(0,3),idlematrix(1,3),idlematrix(2,3),idlematrix(3,3), const3,const1,const1,const2,resultmatrix(3,3));
+							
+			        
+						
+						done1 := '1';
+					    State <= Check;
+					when Finish =>
 					
-					--Second row of output matrix
-					Mix(inputmatrix(0,0),inputmatrix(1,0),inputmatrix(2,0),inputmatrix(3,0), const1,const2,const3,const1,resultmatrix(1,0));
-					Mix(inputmatrix(0,1),inputmatrix(1,1),inputmatrix(2,1),inputmatrix(3,1), const1,const2,const3,const1,resultmatrix(1,1));
-					Mix(inputmatrix(0,2),inputmatrix(1,2),inputmatrix(2,2),inputmatrix(3,2), const1,const2,const3,const1,resultmatrix(1,2));
-					Mix(inputmatrix(0,3),inputmatrix(1,3),inputmatrix(2,3),inputmatrix(3,3), const1,const2,const3,const1,resultmatrix(1,3));
-					
-					--Third row of output matrix
-					Mix(inputmatrix(0,0),inputmatrix(1,0),inputmatrix(2,0),inputmatrix(3,0), const1,const1,const2,const3,resultmatrix(2,0));
-					Mix(inputmatrix(0,1),inputmatrix(1,1),inputmatrix(2,1),inputmatrix(3,1), const1,const1,const2,const3,resultmatrix(2,1));
-					Mix(inputmatrix(0,2),inputmatrix(1,2),inputmatrix(2,2),inputmatrix(3,2), const1,const1,const2,const3,resultmatrix(2,2));
-					Mix(inputmatrix(0,3),inputmatrix(1,3),inputmatrix(2,3),inputmatrix(3,3), const1,const1,const2,const3,resultmatrix(2,3));
-					
-					--Forth row of output matrix
-					Mix(inputmatrix(0,0),inputmatrix(1,0),inputmatrix(2,0),inputmatrix(3,0), const3,const1,const1,const2,resultmatrix(3,0));
-					Mix(inputmatrix(0,1),inputmatrix(1,1),inputmatrix(2,1),inputmatrix(3,1), const3,const1,const1,const2,resultmatrix(3,1));
-					Mix(inputmatrix(0,2),inputmatrix(1,2),inputmatrix(2,2),inputmatrix(3,2), const3,const1,const1,const2,resultmatrix(3,2));
-					Mix(inputmatrix(0,3),inputmatrix(1,3),inputmatrix(2,3),inputmatrix(3,3), const3,const1,const1,const2,resultmatrix(3,3));
-					done:='1';
-                end if;
-			
+						done2:= '1';
+						done  <= '1';
+						outputmatrix <= resultmatrix;
+					    State <= Check;
+							
+					when SetBack =>
+						done1 := '0'; 
+						done2 := '0'; 
+						--done  <= '1';
+					    State <= Idle;
+						
+                    when others =>
+				        State <= Idle;  						
+			    end case;
             end if;
         end if;
     end process;
-         outputmatrix <= resultmatrix;
+         
 end architecture;
