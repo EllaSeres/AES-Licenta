@@ -224,7 +224,7 @@ begin
 			               i0 := (others => '0');
 						   i1 := (others => '0');
                            enable <= '1';
-						   idlematrix   <= resultmatrix;
+						  -- idlematrix   <= resultmatrix;
 						   --doneks <= '1';
 			               State  <= Idle;
 						when others =>

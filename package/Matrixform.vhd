@@ -8,6 +8,10 @@ package matrixform is
   type MatrixRoworColumn is array (0 to 3)
   of std_logic_vector  (7 downto 0 );
   
+  type DataArray is array (0 to 15)
+  of std_logic_vector  (7 downto 0 );
+  
+  
   constant MatrixZero : Matrix := (others => (others => (others => '0')));
   
   component Xorop
@@ -33,6 +37,17 @@ package matrixform is
     );
   end component;
   
+  component InvSbox
+    port (
+      clk : in std_logic;
+      reset : in std_logic;
+      enable : in std_logic;
+      done : out std_logic;
+      inputmatrix : in matrix;
+      outputmatrix : out matrix
+    );
+  end component;
+  
   component ShiftRow
     port (
       clk : in std_logic;
@@ -43,7 +58,28 @@ package matrixform is
       outputmatrix : out matrix
     );
   end component;
-
+  
+	component InvShiftRow
+		port (
+		  clk : in std_logic;
+		  reset : in std_logic;
+		  enable : in std_logic;
+		  done : out std_logic;
+		  inputmatrix : in matrix;
+		  outputmatrix : out matrix
+		);
+	  end component;
+  component InvMixColumn
+    port (
+      clk : in std_logic;
+      reset : in std_logic;
+      enable : in std_logic;
+      done : out std_logic;
+      inputmatrix : in matrix;
+      outputmatrix : out matrix
+    );
+  end component;
+  
   component MixColumn
     port (
       clk : in std_logic;
@@ -82,8 +118,4 @@ package matrixform is
   
 end package;
 
---def memorie or bram 
---xor deodata
---declar tot in package
---la counter evita natura,integer
--- trashold pe 0 , nu se respecta gen
+
